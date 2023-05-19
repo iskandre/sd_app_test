@@ -1,0 +1,81 @@
+ARG CONDA_VER=latest
+ARG OS_TYPE=x86_64
+ARG PY_VER=3.10
+
+FROM debian:11.7-slim
+# System packages 
+RUN apt-get update && apt-get install -yq curl wget jq vim
+RUN apt-get install -yq software-properties-common
+
+# Use the above args 
+ARG CONDA_VER
+ARG OS_TYPE
+# Install miniconda to /miniconda
+RUN curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh"
+RUN bash Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh -p /miniconda -b
+RUN rm Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh
+ENV PATH=/miniconda/bin:${PATH}
+RUN conda update -y conda
+RUN conda init
+RUN apt install -y git
+
+RUN pip install xformers
+
+RUN mkdir /home/sd_app
+RUN mkdir /home/sd_app/output
+WORKDIR /home/
+
+RUN wget "https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64/cuda-keyring_1.0-1_all.deb"
+RUN dpkg -i cuda-keyring_1.0-1_all.deb
+RUN add-apt-repository contrib
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -f -yq cuda
+
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=${CUDA_HOME}/bin:${PATH}
+ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+
+RUN apt-get update && apt-get autoclean && apt-get clean && apt-get autoremove
+
+# ENV LD_PRELOAD=libtcmalloc.so
+ENV TF_CPP_MIN_LOG_LEVEL=3
+ENV BITSANDBYTES_NOWELCOME=1
+ENV SAFETENSORS_FAST_GPU=1
+
+COPY . /home
+
+RUN git clone "https://github.com/AUTOMATIC1111/stable-diffusion-webui" /home/sd_app/sd-webui
+
+RUN pip3 install -r requirements/requirements_iskandre_inf_pip.txt
+
+RUN cp -r /home/sd_app/sd-webui/extensions-builtin/Lora /home/sd_app/sd-webui/extensions
+RUN mkdir /home/sd_app/sd-webui/models/Lora/
+RUN mkdir /home/sd_app/pretrained_model
+
+ENV GCSFUSE_REPO=gcsfuse-bullseye
+RUN echo "deb https://packages.cloud.google.com/apt $GCSFUSE_REPO main" | sudo tee /etc/apt/sources.list.d/gcsfuse.list
+RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+RUN  apt-get update
+RUN  apt-get install -y gcsfuse
+
+RUN chmod +x /usr/bin/gcsfuse
+# RUN /usr/bin/gcsfuse --only-dir base_sd_models sd_app /home/sd_app/pretrained_model
+# RUN /usr/bin/gcsfuse --only-dir retrained_sd_models sd_app /home/sd_app/sd-webui/models/Lora/
+# RUN /usr/bin/gcsfuse --only-dir base_sd_models sd_app /home/sd_app/sd-webui/models/Stable-diffusion
+
+WORKDIR /home/sd_app/sd-webui
+RUN cp /home/script.py /home/sd_app/sd-webui
+
+RUN sed -i 's/import lora/import extensions.Lora.lora as lora/g' /home/sd_app/sd-webui/extensions/Lora/extra_networks_lora.py
+RUN sed -i '/from modules import sd_samplers_compvis, sd_samplers_kdiffusion, shared/c\from modules import sd_samplers_kdiffusion, shared' /home/sd_app/sd-webui/modules/sd_samplers.py
+RUN sed -i '/sd_samplers_compvis.samplers_data_compvis/s/^/#/' /home/sd_app/sd-webui/modules/sd_samplers.py
+
+RUN git clone https://github.com/Stability-AI/stablediffusion repositories/stable-diffusion-stability-ai
+
+RUN cp /home/lora.py /home/sd_app/sd-webui/extensions/Lora/
+
+RUN echo 'exec "$@"' >> /home/entrypoint_script.sh
+ENTRYPOINT ["/bin/sh", "/home/entrypoint_script.sh"]
+
+CMD python3 /home/sd_app/sd-webui/script.py
+

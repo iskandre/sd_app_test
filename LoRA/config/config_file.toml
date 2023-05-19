@@ -1,0 +1,66 @@
+[model_arguments]
+v2 = false
+v_parameterization = false
+pretrained_model_name_or_path = "/home/iskandre/pretrained_model/deliberate_v2.ckpt"
+
+[additional_network_arguments]
+no_metadata = false
+unet_lr = 0.0001
+text_encoder_lr = 5e-5
+network_module = "networks.lora"
+network_dim = 128
+network_alpha = 128
+network_train_unet_only = false
+network_train_text_encoder_only = false
+
+[optimizer_arguments]
+min_snr_gamma = 5
+optimizer_type = "AdamW"
+learning_rate = 0.0001
+max_grad_norm = 1.0
+lr_scheduler = "constant"
+lr_warmup_steps = 0
+
+[dataset_arguments]
+debug_dataset = false
+in_json = "/home/iskandre/LoRA/meta_lat.json"
+train_data_dir = "/home/iskandre/kohya-trainer/sd_datasets/alex"
+dataset_repeats = 100
+shuffle_caption = true
+keep_tokens = 0
+resolution = "512,512"
+caption_dropout_rate = 0
+caption_tag_dropout_rate = 0
+caption_dropout_every_n_epochs = 0
+color_aug = false
+token_warmup_min = 1
+token_warmup_step = 0
+
+[training_arguments]
+output_dir = "/home/iskandre/sd_outputs"
+output_name = "alex-test"
+save_precision = "fp16"
+save_every_n_epochs = 1
+max_train_steps = 800
+train_batch_size = 2
+max_token_length = 75
+mem_eff_attn = false
+xformers = true
+max_train_epochs = 1
+max_data_loader_n_workers = 8
+persistent_data_loader_workers = true
+seed = 1
+gradient_checkpointing = true
+gradient_accumulation_steps = 1
+mixed_precision = "fp16"
+clip_skip = 2
+logging_dir = "/home/iskandre/LoRA/logs"
+log_prefix = "alex-test"
+lowram = true
+
+[sample_prompt_arguments]
+sample_every_n_epochs = 1
+sample_sampler = "euler_a"
+
+[saving_arguments]
+save_model_as = "safetensors"
