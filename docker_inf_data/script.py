@@ -52,7 +52,7 @@ def main(args):
         prompt=prompt,
         styles=None,
         negative_prompt='lowres, text, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck, username, watermark, signature, (worst quality:1.4), (low quality:1.4), (monochrome:1.1), easynegative, African, Chinese, many people',
-        seed=496923455,
+        seed=709932731,
         subseed=None,
         subseed_strength=None,
         seed_resize_from_h=None,
@@ -61,7 +61,7 @@ def main(args):
         sampler_name=sd_samplers.samplers[16].name,
         batch_size=1,
         n_iter=1,
-        steps=30,
+        steps=35,
         cfg_scale=7.0,
         width=512,
         height=512,
@@ -77,6 +77,15 @@ def main(args):
         override_settings=None,
     )
 
+    shared.opts.lora_add_hashes_to_infotext = False
+    shared.opts.precision = 'autocast'
+    shared.opts.skip_torch_cuda_test = True
+    shared.opts.no_half = True
+    shared.opts.no_half_vae = True
+    shared.cmd_opts.no_half = True
+    shared.cmd_opts.no_half_vae = True
+    shared.cmd_opts.precision = 'autocast'
+    shared.cmd_opts.skip_torch_cude_test = True
     shared.opts.sd_lora = lora_name
     extra_network = ExtraNetworkLora()
     extra_networks.register_extra_network(extra_network)
@@ -111,8 +120,10 @@ def main(args):
 
     copy_p = copy.copy(p)
     n = 0
+    iter_count = 1
     while n < iter_count:
         rand_seed = int(random.randrange(4294967294))
+        rand_seed = 496923455
         copy_p.seed = rand_seed
         proc = process_images(copy_p)
         img = proc.images[0]
@@ -123,8 +134,8 @@ def setup_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     sd_model_path = parser.add_argument("--sd_model_path", default = '/home/sd_app/pretrained_model/deliberate_v2.ckpt')
     iter_count = parser.add_argument("--iter_count", default = 10)
-    lora_name = parser.add_argument("--lora_name", default = 'iskandre-test-2a')
-    prompt = parser.add_argument("--prompt", default = "portrait of  (<lora:%s:0.8>)"%lora_name)
+    lora_name = parser.add_argument("--lora_name", default = 'alex-test1')
+    prompt = parser.add_argument("--prompt", default = "(masterpiece,ultra detailed:1.1), modelshoot style, (portrait of a award winning photo of <lora:%s:0.70>) on night city street, wearing leather jacker,(outdoor,street,midnight,skyscraper,concrete,searchlight:1.2),(rain,night:1.5), (rim lighting,:1.4) orange and tale two tone lighting, sharp focus, teal hue, octane, unreal, dimly lit, low key, full night city background,photorealistic, ((high detailed skin:1.2)), 8k uhd, dslr,   (lightroom:1.13), soft lighting, high quality, volumetric lighting, candid, Photograph, high resolution, 4k, 8k, Bokeh, <lora:epi_noiseoffset2:1>"%lora_name)
     output_dir = parser.add_argument("--output_dir", default = "/home/sd_app/output")
 
     return parser

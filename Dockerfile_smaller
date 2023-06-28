@@ -1,0 +1,13 @@
+ARG CONDA_VER=latest
+ARG OS_TYPE=x86_64
+ARG PY_VER=3.10
+
+FROM debian:11.7-slim
+# System packages 
+RUN apt-get update && apt-get install -yq curl wget jq vim software-properties-common git
+
+ARG CONDA_VER
+ARG OS_TYPE
+
+RUN curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh"
+

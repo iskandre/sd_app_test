@@ -2,14 +2,14 @@ ARG CONDA_VER=latest
 ARG OS_TYPE=x86_64
 ARG PY_VER=3.10
 
-FROM debian:11.7-slim
-# System packages 
+FROM debian:11.7-slim as base
 RUN apt-get update && apt-get install -yq curl wget jq vim
 RUN apt-get install -yq software-properties-common
 
 # Use the above args 
 ARG CONDA_VER
 ARG OS_TYPE
+
 # Install miniconda to /miniconda
 RUN curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh"
 RUN bash Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh -p /miniconda -b
@@ -19,7 +19,7 @@ RUN conda update -y conda
 RUN conda init
 RUN apt install -y git
 
-RUN pip install xformers
+RUN pip install --user xformers
 
 RUN mkdir /home/sd_app
 WORKDIR /home/
@@ -27,7 +27,7 @@ WORKDIR /home/
 COPY ./requirements /home/requirements
 RUN git clone "https://github.com/Linaqruf/kohya-trainer" /home/sd_app/kohya-trainer
 
-RUN pip3 install -r requirements/requirements_iskandre_env_pip.txt
+RUN pip3 install --user -r requirements/requirements_iskandre_env_pip.txt
 # RUN conda install --file requirements_iskandre_env_conda.txt
 
 RUN apt-get remove -y --purge '^nvidia-.*'
@@ -84,17 +84,10 @@ RUN echo 'exec "$@"' >> /home/entrypoint_script.sh
 RUN apt-get install -y coreutils
 RUN mkdir /home/sd_app/mounted_output
 RUN chmod 777 /home/entrypoint_script.sh
-# ENTRYPOINT ["/bin/bash","/home/entrypoint_script.sh"] 
-ENTRYPOINT ["/home/entrypoint_script.sh"]
 
-# RUN nvidia-ctk runtime configure
-# RUN curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-# RUN distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-# RUN curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-# RUN sudo apt-get update
-# RUN apt-get install -y nvidia-docker2
-# RUN mkdir /home/sd_app/mounted_output
-#CMD /bin/sh
-CMD accelerate launch --config_file="/home/sd_app/kohya-trainer/accelerate_config/config.yaml" --num_cpu_threads_per_process=1  /home/sd_app/kohya-trainer/train_network.py --sample_prompts="/home/sd_app/LoRA/config/sample_prompt.txt" --config_file="/home/sd_app/LoRA/config/config_file.toml" && cp /home/sd_app/output/* /home/sd_app/mounted_output
-# CMD python3 /home/infinite_loop.py
+FROM debian:11.7-slim as final
+COPY --from=base / /
+
+# ENTRYPOINT ["/home/entrypoint_script.sh"]
+# CMD accelerate launch --config_file="/home/sd_app/kohya-trainer/accelerate_config/config.yaml" --num_cpu_threads_per_process=1  /home/sd_app/kohya-trainer/train_network.py --sample_prompts="/home/sd_app/LoRA/config/sample_prompt.txt" --config_file="/home/sd_app/LoRA/config/config_file.toml" && cp /home/sd_app/output/* /home/sd_app/mounted_output
 
