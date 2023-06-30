@@ -80,11 +80,11 @@ RUN cp /home/lora.py /home/sd_app/sd-webui/extensions/Lora/
 
 RUN echo 'exec "$@"' >> /home/entrypoint_script.sh
 
+ARG ITER_COUNT
 
 FROM debian:11.7-slim as final
-
 COPY --from=base / /
-WORKDIR /home/sd_app/sd-webui
+# WORKDIR /home/sd_app/sd-webui
 ENV PATH=/miniconda/bin:${PATH}
 ENV CUDA_HOME=/usr/local/cuda
 ENV PATH=${CUDA_HOME}/bin:${PATH}
@@ -95,4 +95,5 @@ ENV SAFETENSORS_FAST_GPU=1
 
 ENTRYPOINT ["/bin/sh", "/home/entrypoint_script.sh"]
 
-CMD python3 /home/sd_app/sd-webui/script.py
+CMD ["python3", "/home/sd_app/sd-webui/script.py"]
+

@@ -13,11 +13,15 @@ trained_model_location=$(echo $trained_model_location | cut -c 1-$((${#trained_m
 trained_model_location_basedir=$( echo $trained_model_location | cut -d '/' -f1)
 trained_model_location_dir=$( echo $trained_model_location | cut -d'/' -f2-)
 
-output_path=$(echo $response | cut -d',' -f3 | rev | cut -c2- | rev)
-output_path=$(echo $output_path | cut -c 2-)
+output_path=$(echo $response | cut -d',' -f3 | cut -c2-)
 output_path=$(echo $output_path | cut -c 1-$((${#output_path}-1)))
 output_path_basedir=$( echo $output_path | cut -d '/' -f1)
 output_path_dir=$( echo $output_path | cut -d'/' -f2-)
+
+export ITER_COUNT=$(echo $response | cut -d',' -f4)
+export POSITIVE_PROMPT=$(echo $response | cut -d',' -f5 | cut -c2- | rev | cut -c2- | rev)
+export NEGATIVE_PROMPT=$(echo $response | cut -d',' -f6 | cut -c2- | rev | cut -c2- | cut -c2- | rev)
+
 
 /usr/bin/gcsfuse --only-dir $base_model_path_dir $base_model_path_basedir /home/sd_app/pretrained_model
 /usr/bin/gcsfuse --only-dir $trained_model_location_dir $trained_model_location_basedir /home/sd_app/sd-webui/models/Lora/

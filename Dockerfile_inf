@@ -79,7 +79,9 @@ RUN git clone https://github.com/Stability-AI/stablediffusion repositories/stabl
 RUN cp /home/lora.py /home/sd_app/sd-webui/extensions/Lora/
 
 RUN echo 'exec "$@"' >> /home/entrypoint_script.sh
+
+ARG ITER_COUNT
 ENTRYPOINT ["/bin/sh", "/home/entrypoint_script.sh"]
 
-CMD python3 /home/sd_app/sd-webui/script.py
+CMD ["python3", "/home/sd_app/sd-webui/script.py"]
 
