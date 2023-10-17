@@ -125,7 +125,8 @@ def main(args):
         "model_arguments": {
             "v2": False,
             "v_parameterization": False,
-            "pretrained_model_name_or_path": pretrained_model_full_path
+            "pretrained_model_name_or_path": pretrained_model_full_path,
+            "tokenizer_cache_dir":'/home/sd_app/tokenizer_cached'
         },
         "additional_network_arguments": {
             "no_metadata": False,

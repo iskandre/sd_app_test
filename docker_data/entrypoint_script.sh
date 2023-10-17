@@ -1,6 +1,7 @@
 #!/bin/bash
 
-response=$(curl -s "http://10.132.0.2:4000/get_train_params_instance/?instance_name=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/hostname -H Metadata-Flavor:Google | cut -d '.' -f1)")
+id_token=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=$NODE_MANAGER_URL" -H "Metadata-Flavor: Google")
+response=$(curl -s "$NODE_MANAGER_URL/get_train_params_instance/?instance_name=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/hostname -H Metadata-Flavor:Google | cut -d '.' -f1)" -H "Authorization: Bearer $id_token")
 
 base_model_path=$(echo $response | cut -d',' -f1 | cut -c2-)
 base_model_path=$(echo $base_model_path | cut -c 2-)

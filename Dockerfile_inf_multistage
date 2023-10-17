@@ -48,7 +48,7 @@ RUN pip3 install -r requirements/requirements_iskandre_inf_pip.txt
 
 COPY . /home
 
-RUN git clone "https://github.com/AUTOMATIC1111/stable-diffusion-webui" /home/sd_app/sd-webui
+RUN git clone "https://github.com/AUTOMATIC1111/stable-diffusion-webui" --branch v1.4.0 /home/sd_app/sd-webui
 
 RUN cp -r /home/sd_app/sd-webui/extensions-builtin/Lora /home/sd_app/sd-webui/extensions
 RUN mkdir /home/sd_app/sd-webui/models/Lora/
@@ -75,6 +75,7 @@ RUN sed -i '/from modules import sd_samplers_compvis, sd_samplers_kdiffusion, sh
 RUN sed -i '/sd_samplers_compvis.samplers_data_compvis/s/^/#/' /home/sd_app/sd-webui/modules/sd_samplers.py
 
 RUN git clone https://github.com/Stability-AI/stablediffusion repositories/stable-diffusion-stability-ai
+# RUN git clone https://github.com/Stability-AI/generative-models.git repositories/generative-models
 
 RUN cp /home/lora.py /home/sd_app/sd-webui/extensions/Lora/
 

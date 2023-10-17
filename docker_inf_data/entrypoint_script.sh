@@ -1,6 +1,7 @@
 #!/bin/bash
 
-response=$(curl -s "http://10.132.0.2:4000/get_inference_params_instance/?instance_name=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/hostname -H Metadata-Flavor:Google | cut -d '.' -f1)")
+id_token=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=$NODE_MANAGER_URL" -H "Metadata-Flavor: Google")
+response=$(curl -s "$NODE_MANAGER_URL/get_inference_params_instance/?instance_name=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/hostname -H Metadata-Flavor:Google | cut -d '.' -f1)" -H "Authorization: Bearer $id_token")
 
 base_model_path=$(echo $response | cut -d',' -f1 | cut -c2-)
 base_model_path=$(echo $base_model_path | cut -c 2-)
@@ -18,9 +19,11 @@ output_path=$(echo $output_path | cut -c 1-$((${#output_path}-1)))
 output_path_basedir=$( echo $output_path | cut -d '/' -f1)
 output_path_dir=$( echo $output_path | cut -d'/' -f2-)
 
-export ITER_COUNT=$(echo $response | cut -d',' -f4)
-export POSITIVE_PROMPT=$(echo $response | cut -d',' -f5 | cut -c2- | rev | cut -c2- | rev)
-export NEGATIVE_PROMPT=$(echo $response | cut -d',' -f6 | cut -c2- | rev | cut -c2- | cut -c2- | rev)
+export SD_BASE_MODEL_NAME=$(echo $response | cut -d',' -f4 | cut -c2- | rev | cut -c2- | rev)
+
+export ITER_COUNT=$(echo $response | cut -d',' -f5)
+export POSITIVE_PROMPT=$(echo $response | cut -d',' -f6 | cut -c2- | rev | cut -c2- | rev)
+export NEGATIVE_PROMPT=$(echo $response | cut -d',' -f7 | cut -c2- | rev | cut -c2- | cut -c2- | rev)
 
 
 /usr/bin/gcsfuse --only-dir $base_model_path_dir $base_model_path_basedir /home/sd_app/pretrained_model

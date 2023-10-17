@@ -24,14 +24,19 @@ samplers_lowercase = [x.lower() for x in samplers]
 
 def main(args):
 
-    sd_model_path = args.sd_model_path
+    # sd_model_path = args.sd_model_path
+    base_model_name = os.getenv('SD_BASE_MODEL_NAME', '')
+    if base_model_name == '':
+        sd_model_path = '/home/sd_app/pretrained_model/deliberate_v2.ckpt'
+    else:
+        sd_model_path = f'/home/sd_app/pretrained_model/{base_model_name}'
     iter_count = int(os.getenv('ITER_COUNT',10))
     lora_name = args.lora_name
-    prompt = os.getenv('POSITIVE_PROMPT')
+    prompt = os.getenv('POSITIVE_PROMPT').replace(';',',')
     output_dir = args.output_dir
     id_task = 'task-%s'%str(int(random.randrange(4294967294)))
     # prompt = "portrait of a guy on the beach"
-    negative_prompt = os.getenv('NEGATIVE_PROMPT')
+    negative_prompt = os.getenv('NEGATIVE_PROMPT').replace(';',',')
     prompt_styles = []
     steps = 36
     sampler_index = 0

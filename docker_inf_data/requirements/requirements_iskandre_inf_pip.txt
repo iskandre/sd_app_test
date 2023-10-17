@@ -166,11 +166,11 @@ tokenizers==0.13.3
 tomli==2.0.1
 tomesd
 toolz==0.12.0
-torch==2.0.0
+torch==2.0.1
 torchdiffeq==0.2.3
 torchmetrics==0.11.4
 torchsde==0.2.5
-torchvision==0.15.1
+torchvision
 tqdm==4.65.0
 trampoline==0.1.2
 transformers==4.25.1
@@ -185,6 +185,6 @@ wandb==0.15.1
 wcwidth==0.2.6
 websockets==11.0.2
 Werkzeug==2.3.3
-xformers==0.0.19
+xformers==0.0.21
 yapf==0.33.0
 yarl==1.9.2

@@ -45,7 +45,7 @@ ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
 RUN apt-get update && apt-get autoclean && apt-get clean && apt-get autoremove
 
-RUN apt-get install linux-headers-$(uname -r)
+RUN apt-get install -y linux-headers-$(uname -r)
 
 RUN apt-get install -y nvidia-driver
 # COPY requirements/requirements_iskandre_env_conda.txt .
@@ -64,6 +64,8 @@ RUN mkdir pretrained_model
 RUN mkdir vae
 RUN mkdir config
 RUN mkdir mounted
+RUN mkdir tokenizer_cached
+RUN echo "from transformers import CLIPTokenizer;tokenizer = CLIPTokenizer.from_pretrained('openai/clip-vit-large-patch14');tokenizer.save_pretrained('/home/sd_app/tokenizer_cached')" | python3
 
 ENV GCSFUSE_REPO=gcsfuse-bullseye
 RUN echo "deb https://packages.cloud.google.com/apt $GCSFUSE_REPO main" | sudo tee /etc/apt/sources.list.d/gcsfuse.list
