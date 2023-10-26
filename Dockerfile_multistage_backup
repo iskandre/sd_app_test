@@ -27,7 +27,7 @@ WORKDIR /home/
 COPY ./requirements /home/requirements
 RUN git clone "https://github.com/Linaqruf/kohya-trainer" /home/sd_app/kohya-trainer
 
-# RUN pip3 install -r requirements/requirements_iskandre_env_pip.txt
+RUN pip3 install -r requirements/requirements_iskandre_env_pip.txt
 # RUN conda install --file requirements_iskandre_env_conda.txt
 
 RUN apt-get remove -y --purge '^nvidia-.*'
@@ -66,19 +66,9 @@ RUN mkdir vae
 RUN mkdir config
 RUN mkdir mounted
 RUN mkdir tokenizer_cached
-RUN mkdir CLIP_pretrained
-RUN echo "from transformers import CLIPTokenizer, CLIPTextModel;tokenizer = CLIPTokenizer.from_pretrained('openai/clip-vit-large-patch14');tokenizer.save_pretrained('/home/sd_app/tokenizer_cached');textual_model = CLIPTextModel.from_pretrained('openai/clip-vit-large-patch14');textual_model.save_pretrained('/home/sd_app/CLIP_pretrained')" | python3
-WORKDIR /
-RUN mkdir openai
-WORKDIR /openai
-RUN mkdir clip-vit-large-patch14
-WORKDIR /home/sd_app/
-RUN cp -r CLIP_pretrained/* /openai/clip-vit-large-patch14/
-RUN rm -r CLIP_pretrained
+RUN echo "from transformers import CLIPTokenizer;tokenizer = CLIPTokenizer.from_pretrained('openai/clip-vit-large-patch14');tokenizer.save_pretrained('/home/sd_app/tokenizer_cached')" | python3
 WORKDIR /home/sd_app/kohya-trainer
-# RUN echo "import os;import transformers; print(transformers.__version__);from transformers import CLIPTextModel;" | python3
-
-
+RUN echo "import os;import transformers; print(transformers.__version__);from transformers import CLIPTextModel;" | python3
 
 ENV GCSFUSE_REPO=gcsfuse-bullseye
 RUN echo "deb https://packages.cloud.google.com/apt $GCSFUSE_REPO main" | sudo tee /etc/apt/sources.list.d/gcsfuse.list
@@ -99,9 +89,7 @@ RUN echo 'exec "$@"' >> /home/entrypoint_script.sh
 RUN apt-get install -y coreutils
 RUN mkdir /home/sd_app/mounted_output
 RUN chmod 777 /home/entrypoint_script.sh
-RUN pip3 install xformers==0.0.21
-RUN echo "import xformers;" | python3
-RUN mv /home/sd_app/tokenizer_cached/* /openai/clip-vit-large-patch14
+
 FROM debian:11.7-slim as final
 
 COPY --from=base / /
@@ -115,14 +103,13 @@ ENV TF_CPP_MIN_LOG_LEVEL=3
 ENV BITSANDBYTES_NOWELCOME=1
 ENV SAFETENSORS_FAST_GPU=1
 ENV GCSFUSE_REPO=gcsfuse-bullseye
-# WORKDIR /home/sd_app/kohya-trainer
+
 # CMD python3 -c "import tqdm"
 # ENTRYPOINT ["python3","-c","import tqdm;"]
 
 # ENTRYPOINT bash /home/entrypoint_script.sh
 ENTRYPOINT ["/home/entrypoint_script.sh"]
-
 # CMD accelerate launch --config_file="/home/sd_app/kohya-trainer/accelerate_config/config.yaml" --num_cpu_threads_per_process=1  /home/sd_app/kohya-trainer/train_network.py --sample_prompts="/home/sd_app/LoRA/config/sample_prompt.txt" --config_file="/home/sd_app/LoRA/config/config_file.toml" && cp /home/sd_app/output/* /home/sd_app/mounted_output
-# RUN echo "import os;from transformers import CLIPTextModel" | python3
+
 CMD ["/bin/bash", "-c", "accelerate launch --config_file=/home/sd_app/kohya-trainer/accelerate_config/config.yaml --num_cpu_threads_per_process=1 /home/sd_app/kohya-trainer/train_network.py --sample_prompts=/home/sd_app/LoRA/config/sample_prompt.txt --config_file=/home/sd_app/LoRA/config/config_file.toml && cp /home/sd_app/output/* /home/sd_app/mounted_output"]
 

@@ -1,0 +1,6 @@
+The push refers to repository [us-docker.pkg.dev/immo-280017/sd-app-multi/sd-train-test]
+c2ad71b876c9: Preparing
+10764c37bcbc: Preparing
+10764c37bcbc: Layer already exists
+c2ad71b876c9: Pushed
+0.43-latest-dev: digest: sha256:c9c2a72007ab7c13e54e7691f93ddf8c71cc3ad3d5036bbb1d9ec96335465975 size: 744

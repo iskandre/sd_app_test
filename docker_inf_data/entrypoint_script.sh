@@ -31,5 +31,5 @@ export NEGATIVE_PROMPT=$(echo $response | cut -d',' -f7 | cut -c2- | rev | cut -
 /usr/bin/gcsfuse --only-dir $base_model_path_dir $base_model_path_basedir /home/sd_app/sd-webui/models/Stable-diffusion
 /usr/bin/gcsfuse --only-dir $output_path_dir $output_path_basedir /home/sd_app/output
 
-/usr/bin/gcsfuse --only-dir extra_lora_models sd_app_fp /home/sd_app/extra_lora_models
+/usr/bin/gcsfuse --only-dir extra_lora_models $base_model_path_basedir /home/sd_app/extra_lora_models
 cp /home/sd_app/extra_lora_models/* /home/sd_app/sd-webui/models/Lora/

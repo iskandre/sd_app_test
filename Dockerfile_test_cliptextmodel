@@ -1,0 +1,56 @@
+ARG CONDA_VER=latest
+ARG OS_TYPE=x86_64
+ARG PY_VER=3.10
+
+
+FROM debian:11.7-slim as base
+# System packages 
+RUN apt-get update && apt-get install -yq curl wget jq vim
+RUN apt-get install -yq software-properties-common
+
+
+ARG CONDA_VER
+ARG OS_TYPE
+# Install miniconda to /miniconda
+RUN curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh"
+RUN bash Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh -p /miniconda -b
+RUN rm Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh
+ENV PATH=/miniconda/bin:${PATH}
+RUN conda update -y conda
+RUN conda init
+RUN apt install -y git
+
+RUN pip install xformers
+
+RUN mkdir /home/sd_app
+RUN mkdir /home/sd_app/output
+WORKDIR /home/
+
+RUN wget "https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64/cuda-keyring_1.0-1_all.deb"
+RUN dpkg -i cuda-keyring_1.0-1_all.deb
+RUN add-apt-repository contrib
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -f -yq cuda
+
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=${CUDA_HOME}/bin:${PATH}
+ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+
+RUN apt-get update && apt-get autoclean && apt-get clean && apt-get autoremove
+
+# ENV LD_PRELOAD=libtcmalloc.so
+ENV TF_CPP_MIN_LOG_LEVEL=3
+ENV BITSANDBYTES_NOWELCOME=1
+ENV SAFETENSORS_FAST_GPU=1
+
+RUN mkdir requirements
+RUN git clone "https://github.com/Linaqruf/kohya-trainer" /home/sd_app/kohya-trainer
+COPY requirements/requirements_iskandre_env_cliptext_test_pip.txt requirements/requirements_test.txt 
+RUN pip3 install -r requirements/requirements_test.txt
+
+RUN pip3 install tensorflow==2.14.0
+WORKDIR /home/sd_app
+
+RUN echo "import os;from transformers import CLIPTextModel;" | python3
+
+CMD /bin/sh

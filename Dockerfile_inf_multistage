@@ -79,6 +79,16 @@ RUN git clone https://github.com/Stability-AI/stablediffusion repositories/stabl
 
 RUN cp /home/lora.py /home/sd_app/sd-webui/extensions/Lora/
 
+#RUN mkdir /home/sd_app/sd-webui/openai/clip-vit-large-patch14
+RUN mkdir CLIP_pretrained
+RUN echo "import os;from transformers import CLIPTokenizer, CLIPTextModel;tokenizer = CLIPTokenizer.from_pretrained('openai/clip-vit-large-patch14');textual_model = CLIPTextModel.from_pretrained('openai/clip-vit-large-patch14');tokenizer.save_pretrained('CLIP_pretrained');textual_model.save_pretrained('CLIP_pretrained')" | python3
+RUN mkdir openai
+WORKDIR /home/sd_app/sd-webui/openai  
+RUN mkdir clip-vit-large-patch14
+WORKDIR /home/sd_app/sd-webui
+RUN cp -r CLIP_pretrained/* openai/clip-vit-large-patch14/
+RUN rm -r CLIP_pretrained
+
 RUN echo 'exec "$@"' >> /home/entrypoint_script.sh
 
 ARG ITER_COUNT
